@@ -4,8 +4,7 @@ import { request } from '@/plugins/request'
 export const getArticles = params => {
   return request({
     method: 'GET',
-    url: '/api/articles',
-    params
+    url: params?'/api/articles?'+params:'/api/articles'
   })
 }
 
@@ -51,5 +50,14 @@ export const getComments = slug => {
   return request({
     method: 'GET',
     url: `/api/articles/${slug}/comments`
+  })
+}
+
+// 创建文章
+export const createdArticle = params => {
+  return request({
+    method: 'POST',
+    url: '/api/articles',
+    params
   })
 }
