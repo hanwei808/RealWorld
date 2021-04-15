@@ -4,7 +4,8 @@ import { request } from '@/plugins/request'
 export const getArticles = params => {
   return request({
     method: 'GET',
-    url: params?'/api/articles?'+params:'/api/articles'
+    url: '/api/articles',
+    params
   })
 }
 
