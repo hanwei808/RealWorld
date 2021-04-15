@@ -33,30 +33,41 @@
         <div class="col-xs-12 col-md-10 offset-md-1">
           <div class="articles-toggle">
             <ul class="nav nav-pills outline-active">
-              <li class="nav-item">
-                <div
+              <li v-if="user" class="nav-item">
+                <nuxt-link
                   class="nav-link"
-                  :class="{ active: isShowMyArticles }"
-                  @click="() => (isShowMyArticles = true)"
+                  :class="{
+                    active: tab === 'my_articles',
+                  }"
+                  exact
+                  :to="{
+                    name: 'profile',
+                  }"
+                  >My Articles</nuxt-link
                 >
-                  My Articles
-                </div>
               </li>
               <li class="nav-item">
-                <div
+                <nuxt-link
                   class="nav-link"
-                  :class="{ active: !isShowMyArticles }"
-                  @click="() => (isShowMyArticles = false)"
+                  :class="{
+                    active: tab === 'favorited_articles',
+                  }"
+                  exact
+                  :to="{
+                    name: 'profile',
+                    query: {
+                      tab: 'favorited_articles',
+                    },
+                  }"
+                  >Favorited Articles</nuxt-link
                 >
-                  Favorited Articles
-                </div>
               </li>
             </ul>
           </div>
 
           <div
             class="article-preview"
-            v-for="(article, index) in isShowMyArticles ? articles : articles2"
+            v-for="(article, index) in articles"
             :key="index"
           >
             <div class="article-meta">
@@ -67,7 +78,10 @@
                   article.createdAt | date("MMM DD, YYYY")
                 }}</span>
               </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
+              <button
+                class="btn btn-outline-primary btn-sm pull-xs-right"
+                @click="onFavorite(article)"
+              >
                 <i class="ion-heart"></i> {{ article.favoritesCount }}
               </button>
             </div>
@@ -84,8 +98,45 @@
               <h1>{{ article.title }}</h1>
               <p>{{ article.description }}</p>
               <span>Read more...</span>
+              <ul class="tag-list">
+                <li
+                  class="tag-default tag-pill tag-outline ng-binding ng-scope"
+                  ng-repeat="tag in ::$ctrl.article.tagList"
+                  v-for="(tag, index) in article.tagList"
+                  :key="index"
+                >
+                  {{ tag }}
+                </li>
+              </ul>
             </nuxt-link>
           </div>
+
+          <!-- 分页列表 -->
+          <nav>
+            <ul class="pagination">
+              <li
+                class="page-item"
+                :class="{
+                  active: item === page,
+                }"
+                v-for="item in totalPage"
+                :key="item"
+              >
+                <nuxt-link
+                  class="page-link"
+                  :to="{
+                    name: 'profile',
+                    query: {
+                      page: item,
+                      tab: tab,
+                    },
+                  }"
+                  >{{ item }}</nuxt-link
+                >
+              </li>
+            </ul>
+          </nav>
+          <!-- /分页列表 -->
         </div>
       </div>
     </div>
@@ -95,28 +146,42 @@
 <script>
 import { mapState } from "vuex";
 import { getProfiles, follow, deleteFollow } from "@/api/user";
-import { getArticles } from "@/api/article";
+import { getArticles, deleteFavorite, addFavorite } from "@/api/article";
 export default {
   middleware: "authenticated",
   name: "UserProfile",
-  async asyncData({ params }) {
+  async asyncData({ params, query }) {
     const { data: userData } = await getProfiles(params.username);
     const { profile } = userData;
-    const { data } = await getArticles(
-      `author=${params.username}&limit=5&offset=0`
-    );
-    const { articles } = data;
-    const { data: data2 } = await getArticles(`favorited:${params.username}`);
-    const { articles: articles2 } = data2;
+    const page = Number.parseInt(query.page || 1);
+    const limit = 5;
+    const tab = query.tab || "my_articles";
+
+    const { data } = await getArticles({
+      author: tab == "my_articles" ? params.username : undefined,
+      favorited: tab != "my_articles" ? params.username : undefined,
+      limit,
+      offset: (page - 1) * limit,
+    });
+    const { articles, articlesCount } = data;
+
+    articles.forEach((article) => (article.favoriteDisabled = false));
+
     return {
       profile,
-      articles,
-      articles2,
-      isShowMyArticles: true,
+      articles, // 文章列表
+      articlesCount, // 文章总数
+      limit, // 每页大小
+      page, // 页码
+      tab, // 选项卡
     };
   },
+  watchQuery: ["page", "tab"],
   computed: {
     ...mapState(["user"]),
+    totalPage() {
+      return Math.ceil(this.articlesCount / this.limit);
+    },
   },
   methods: {
     async eiditOrFollow() {
@@ -131,6 +196,25 @@ export default {
           this.profile = data.profile;
         }
       }
+    },
+    async onFavorite(article) {
+      if (this.user == null) {
+        this.$router.push("/login");
+        return;
+      }
+      article.favoriteDisabled = true;
+      if (article.favorited) {
+        // 取消点赞
+        await deleteFavorite(article.slug);
+        article.favorited = false;
+        article.favoritesCount += -1;
+      } else {
+        // 添加点赞
+        await addFavorite(article.slug);
+        article.favorited = true;
+        article.favoritesCount += 1;
+      }
+      article.favoriteDisabled = false;
     },
   },
 };

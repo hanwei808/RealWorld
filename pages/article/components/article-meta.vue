@@ -32,7 +32,7 @@
       @click="editOrFollow()"
     >
       <i class="ion-plus-round"></i>
-      <span v-if="article.author.username == user.username"
+      <span v-if="user && article.author.username == user.username"
         >&nbsp; Edit Article</span
       >
       <span v-else
@@ -51,11 +51,13 @@
       @click="deleteOrFavorite()"
     >
       <i class="ion-heart"></i>
-      <span v-if="article.author.username == user.username"
+      <span v-if="user && article.author.username == user.username"
         >&nbsp; Delete Article</span
       >
       <span v-else>&nbsp; Favorite Post</span>
-      <span class="counter" v-if="article.author.username != user.username"
+      <span
+        class="counter"
+        v-if="user && article.author.username != user.username"
         >({{ article.favoritesCount }})</span
       >
     </button>
@@ -81,7 +83,10 @@ export default {
   },
   methods: {
     editOrFollow() {
-      if (this.article.author.username == this.user.username) {
+      if (
+        this.user != null &&
+        this.article.author.username == this.user.username
+      ) {
         this.$router.push({
           name: "editor",
           params: {
@@ -93,7 +98,10 @@ export default {
       }
     },
     deleteOrFavorite() {
-      if (this.article.author.username == this.user.username) {
+      if (
+        this.user != null &&
+        this.article.author.username == this.user.username
+      ) {
         this.$emit("delete-article");
       } else {
         this.$emit("on-favorite");

@@ -12,7 +12,7 @@
                   class="form-control"
                   type="text"
                   placeholder="URL of profile picture"
-                  v-model="modifyUser.pictureUrl"
+                  v-model="modifyUser.image"
                 />
               </fieldset>
               <fieldset class="form-group">
@@ -28,7 +28,7 @@
                   class="form-control form-control-lg"
                   rows="8"
                   placeholder="Short bio about you"
-                  v-model="modifyUser.about"
+                  v-model="modifyUser.bio"
                 ></textarea>
               </fieldset>
               <fieldset class="form-group">
@@ -44,7 +44,7 @@
                   class="form-control form-control-lg"
                   type="password"
                   placeholder="Password"
-                  v-model="modifyUser.pwd"
+                  v-model="modifyUser.password"
                 />
               </fieldset>
               <button class="btn btn-lg btn-primary pull-xs-right">
@@ -57,7 +57,7 @@
             style="border: solid 1px #b85c5c; background: none; color: #b85c5c"
             @click="logout"
           >
-            click here to logout.
+            Or click here to logout.
           </button>
         </div>
       </div>
@@ -72,31 +72,19 @@ import { update } from "@/api/user";
 export default {
   middleware: "authenticated",
   name: "SettingsIndex",
-  data() {
-    return {
-      modifyUser: {
-        pictureUrl: "",
-        about: "",
-        email: "",
-        pwd: "",
-      },
-    };
-  },
-  // async asyncData({ params }) {
-  //   console.log(params);
-  //   return {
-  //     user: { username: params.username },
-  //   };
-  // },
   computed: {
     ...mapState(["user"]),
-  },
-  mounted() {
-    this.modifyUser = JSON.parse(JSON.stringify(this.user));
+    modifyUser() {
+      return JSON.parse(JSON.stringify(this.user));
+    },
   },
   methods: {
     async updateInfo() {
-      const { data } = await update(this.modifyUser);
+      delete this.modifyUser.id;
+      delete this.modifyUser.token;
+      delete this.modifyUser.createdAt;
+      delete this.modifyUser.updatedAt;
+      const { data } = await update({ user: this.modifyUser });
       const { user } = data;
       this.$store.commit("setUser", data.user);
       Cookie.set("user", data.user);
@@ -108,8 +96,8 @@ export default {
       });
     },
     logout() {
-      Cookie.remove("user");
       this.$store.commit("setUser", null);
+      Cookie.remove("user");
       this.$router.push("/");
     },
   },

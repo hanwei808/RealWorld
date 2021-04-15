@@ -45,13 +45,13 @@
                 <nuxt-link
                   class="nav-link"
                   :class="{
-                    active: tab === 'tag',
+                    active: tab === tag,
                   }"
                   exact
                   :to="{
                     name: 'home',
                     query: {
-                      tab: 'tag',
+                      tab: tag,
                       tag: tag,
                     },
                   }"
@@ -116,6 +116,16 @@
               <h1>{{ article.title }}</h1>
               <p>{{ article.description }}</p>
               <span>Read more...</span>
+              <ul class="tag-list">
+                <li
+                  class="tag-default tag-pill tag-outline ng-binding ng-scope"
+                  ng-repeat="tag in ::$ctrl.article.tagList"
+                  v-for="(tag, index) in article.tagList"
+                  :key="index"
+                >
+                  {{ tag }}
+                </li>
+              </ul>
             </nuxt-link>
           </div>
 
@@ -157,7 +167,7 @@
                 :to="{
                   name: 'home',
                   query: {
-                    tab: 'tag',
+                    tab: item,
                     tag: item,
                   },
                 }"
@@ -193,7 +203,7 @@ export default {
     const tag = query.tag;
 
     const loadArticles =
-      tab === "global_feed" ? getArticles : getYourFeedArticles;
+      tab === "your_feed" ? getYourFeedArticles : getArticles;
 
     const [articleRes, tagRes] = await Promise.all([
       loadArticles({
@@ -204,7 +214,7 @@ export default {
       getTags(),
     ]);
 
-    const { articles, articlesCount } = articleRes.data;
+    let { articles, articlesCount } = articleRes.data;
     const { tags } = tagRes.data;
 
     articles.forEach((article) => (article.favoriteDisabled = false));
