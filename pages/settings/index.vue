@@ -12,7 +12,7 @@
                   class="form-control"
                   type="text"
                   placeholder="URL of profile picture"
-                  v-model="user.pictureUrl"
+                  v-model="modifyUser.pictureUrl"
                 />
               </fieldset>
               <fieldset class="form-group">
@@ -20,7 +20,7 @@
                   class="form-control form-control-lg"
                   type="text"
                   placeholder="Your Name"
-                  v-model="user.username"
+                  v-model="modifyUser.username"
                 />
               </fieldset>
               <fieldset class="form-group">
@@ -28,7 +28,7 @@
                   class="form-control form-control-lg"
                   rows="8"
                   placeholder="Short bio about you"
-                  v-model="user.about"
+                  v-model="modifyUser.about"
                 ></textarea>
               </fieldset>
               <fieldset class="form-group">
@@ -36,7 +36,7 @@
                   class="form-control form-control-lg"
                   type="text"
                   placeholder="Email"
-                  v-model="user.email"
+                  v-model="modifyUser.email"
                 />
               </fieldset>
               <fieldset class="form-group">
@@ -44,7 +44,7 @@
                   class="form-control form-control-lg"
                   type="password"
                   placeholder="Password"
-                  v-model="user.pwd"
+                  v-model="modifyUser.pwd"
                 />
               </fieldset>
               <button class="btn btn-lg btn-primary pull-xs-right">
@@ -53,7 +53,12 @@
             </fieldset>
           </form>
           <hr />
-          <button @click="logout">click here to logout.</button>
+          <button
+            style="border: solid 1px #b85c5c; background: none; color: #b85c5c"
+            @click="logout"
+          >
+            click here to logout.
+          </button>
         </div>
       </div>
     </div>
@@ -62,13 +67,14 @@
 
 <script>
 const Cookie = process.client ? require("js-cookie") : undefined;
+import { mapState } from "vuex";
 import { update } from "@/api/user";
 export default {
   middleware: "authenticated",
   name: "SettingsIndex",
   data() {
     return {
-      user: {
+      modifyUser: {
         pictureUrl: "",
         about: "",
         email: "",
@@ -76,15 +82,21 @@ export default {
       },
     };
   },
-  async asyncData({ params }) {
-    console.log(params);
-    return {
-      user: { username: params.username },
-    };
+  // async asyncData({ params }) {
+  //   console.log(params);
+  //   return {
+  //     user: { username: params.username },
+  //   };
+  // },
+  computed: {
+    ...mapState(["user"]),
+  },
+  mounted() {
+    this.modifyUser = JSON.parse(JSON.stringify(this.user));
   },
   methods: {
     async updateInfo() {
-      const { data } = await update(this.user);
+      const { data } = await update(this.modifyUser);
       const { user } = data;
       this.$store.commit("setUser", data.user);
       Cookie.set("user", data.user);

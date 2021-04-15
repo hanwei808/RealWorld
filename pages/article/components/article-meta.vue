@@ -1,60 +1,107 @@
 <template>
   <div class="article-meta">
-    <nuxt-link :to="{
-      name: 'profile',
-      params: {
-        username: article.author.username
-      }
-    }">
+    <nuxt-link
+      :to="{
+        name: 'profile',
+        params: {
+          username: article.author.username,
+        },
+      }"
+    >
       <img :src="article.author.image" />
     </nuxt-link>
     <div class="info">
-      <nuxt-link class="author" :to="{
-        name: 'profile',
-        params: {
-          username: article.author.username
-        }
-      }">
+      <nuxt-link
+        class="author"
+        :to="{
+          name: 'profile',
+          params: {
+            username: article.author.username,
+          },
+        }"
+      >
         {{ article.author.username }}
       </nuxt-link>
-      <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
+      <span class="date">{{ article.createdAt | date("MMM DD, YYYY") }}</span>
     </div>
     <button
       class="btn btn-sm btn-outline-secondary"
       :class="{
-        active: article.author.following
+        active: article.author.following,
       }"
+      @click="editOrFollow()"
     >
       <i class="ion-plus-round"></i>
-      &nbsp;
-      Follow Eric Simons <span class="counter">(10)</span>
+      <span v-if="article.author.username == user.username"
+        >&nbsp; Edit Article</span
+      >
+      <span v-else
+        >&nbsp;
+        {{
+          (profile.following ? "Unfollow " : "Follow ") + profile.username
+        }}</span
+      >
     </button>
     &nbsp;&nbsp;
     <button
       class="btn btn-sm btn-outline-primary"
       :class="{
-        active: article.favorited
+        active: article.favorited,
       }"
+      @click="deleteOrFavorite()"
     >
       <i class="ion-heart"></i>
-      &nbsp;
-      Favorite Post <span class="counter">(29)</span>
+      <span v-if="article.author.username == user.username"
+        >&nbsp; Delete Article</span
+      >
+      <span v-else>&nbsp; Favorite Post</span>
+      <span class="counter" v-if="article.author.username != user.username"
+        >({{ article.favoritesCount }})</span
+      >
     </button>
   </div>
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
-  name: 'ArticleMeta',
+  name: "ArticleMeta",
   props: {
     article: {
       type: Object,
-      required: true
-    }
-  }
-}
+      required: true,
+    },
+    profile: {
+      type: Object,
+      required: true,
+    },
+  },
+  computed: {
+    ...mapState(["user"]),
+  },
+  methods: {
+    editOrFollow() {
+      if (this.article.author.username == this.user.username) {
+        this.$router.push({
+          name: "editor",
+          params: {
+            slug: this.article.slug,
+          },
+        });
+      } else {
+        this.$emit("deal-follow");
+      }
+    },
+    deleteOrFavorite() {
+      if (this.article.author.username == this.user.username) {
+        this.$emit("delete-article");
+      } else {
+        this.$emit("on-favorite");
+      }
+    },
+  },
+};
 </script>
 
 <style>
-
 </style>

@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { login, register } from "@/api/user";
+import { login, register, getProfiles } from "@/api/user";
 
 // 仅在客户端加载 js-cookie 包
 const Cookie = process.client ? require("js-cookie") : undefined;
@@ -96,6 +96,9 @@ export default {
               user: this.user,
             });
 
+        const { data: userData } = await getProfiles(data.user.username);
+        const { profile } = userData;
+        data.user.image = profile.image;
         // console.log(data)
         // TODO: 保存用户的登录状态
         this.$store.commit("setUser", data.user);

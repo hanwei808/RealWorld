@@ -54,27 +54,37 @@
 </template>
 
 <script>
-import { createdArticle } from "@/api/article";
-
+import { getArticle, createdArticle, updateArticle } from "@/api/article";
 export default {
   // 在路由匹配组件渲染之前会先执行中间件处理
   middleware: "authenticated",
   name: "EditorIndex",
-  data() {
+  async asyncData({ params }) {
+    let article;
+    if (params.slug) {
+      const { data } = await getArticle(params.slug);
+      article = data.article;
+      article.tagList = article.tagList.toString();
+    } else {
+      article = {};
+    }
+
     return {
-      article: {
-        title: "",
-        description: "",
-        body: "",
-        tagList: [],
-      },
+      article,
+      isUpdate: params.slug ? true : false,
     };
   },
   methods: {
     async onSubmit() {
-      console.log("new post");
-      const { data } = await createdArticle({ article: this.article });
-      const { article } = data;
+      let article;
+      this.article.tagList = this.article.tagList.split();
+      if (this.isUpdate) {
+        const { data } = await updateArticle({ article: this.article });
+        article = data.article;
+      } else {
+        const { data } = await createdArticle({ article: this.article });
+        article = data.article;
+      }
       this.$router.push({
         name: "article",
         params: {

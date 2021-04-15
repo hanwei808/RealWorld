@@ -4,12 +4,24 @@
       <div class="container">
         <div class="row">
           <div class="col-xs-12 col-md-10 offset-md-1">
-            <img src="http://i.imgur.com/Qr71crq.jpg" class="user-img" />
-            <h4>{{ user.username }}</h4>
-            <p>{{ user.bio }}</p>
-            <button class="btn btn-sm btn-outline-secondary action-btn">
+            <img :src="profile.image" class="user-img" />
+            <h4>{{ profile.username }}</h4>
+            <p>{{ profile.bio }}</p>
+            <button
+              class="btn btn-sm btn-outline-secondary action-btn"
+              @click="eiditOrFollow()"
+            >
               <i class="ion-plus-round"></i>
-              &nbsp; Follow {{ user.username }}
+              <span v-if="user.username == profile.username"
+                >&nbsp; Edit Profile Settings</span
+              >
+              <span v-else
+                >&nbsp;
+                {{
+                  (profile.following ? "Unfollow " : "Follow ") +
+                  profile.username
+                }}</span
+              >
             </button>
           </div>
         </div>
@@ -48,7 +60,7 @@
             :key="index"
           >
             <div class="article-meta">
-              <a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
+              <a href=""><img :src="article.author.image" /></a>
               <div class="info">
                 <a href="" class="author">{{ article.author.username }}</a>
                 <span class="date">{{
@@ -82,20 +94,22 @@
 
 <script>
 import { mapState } from "vuex";
-import { getProfiles } from "@/api/user";
+import { getProfiles, follow, deleteFollow } from "@/api/user";
 import { getArticles } from "@/api/article";
 export default {
   middleware: "authenticated",
   name: "UserProfile",
   async asyncData({ params }) {
-    // const { data: userData } = await getProfiles(params.username);
+    const { data: userData } = await getProfiles(params.username);
+    const { profile } = userData;
     const { data } = await getArticles(
-      `author:${params.username}&limit=5&offset=0`
+      `author=${params.username}&limit=5&offset=0`
     );
     const { articles } = data;
     const { data: data2 } = await getArticles(`favorited:${params.username}`);
     const { articles: articles2 } = data2;
     return {
+      profile,
       articles,
       articles2,
       isShowMyArticles: true,
@@ -104,7 +118,21 @@ export default {
   computed: {
     ...mapState(["user"]),
   },
-  methods: {},
+  methods: {
+    async eiditOrFollow() {
+      if (this.user.username == this.profile.username) {
+        this.$router.push("/settings");
+      } else {
+        if (this.profile.following) {
+          const { data } = await deleteFollow(this.profile.username);
+          this.profile = data.profile;
+        } else {
+          const { data } = await follow(this.profile.username);
+          this.profile = data.profile;
+        }
+      }
+    },
+  },
 };
 </script>
 
