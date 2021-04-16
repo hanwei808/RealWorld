@@ -54,6 +54,14 @@ export const getComments = slug => {
   })
 }
 
+export const setComments = data => {
+  return request({
+    method: 'POST',
+    url: `/api/articles/${data.comment.slug}/comments`,
+    data
+  })
+}
+
 // 创建文章
 export const createdArticle = data => {
   return request({

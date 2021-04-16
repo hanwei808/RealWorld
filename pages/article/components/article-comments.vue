@@ -6,11 +6,14 @@
           class="form-control"
           placeholder="Write a comment..."
           rows="3"
+          v-model="writeComment"
         ></textarea>
       </div>
       <div class="card-footer">
         <img :src="user.image" class="comment-author-img" />
-        <button class="btn btn-sm btn-primary">Post Comment</button>
+        <button class="btn btn-sm btn-primary" @click="postComment()">
+          Post Comment
+        </button>
       </div>
     </form>
 
@@ -51,7 +54,7 @@
 </template>
 
 <script>
-import { getComments } from "@/api/article";
+import { getComments, setComments } from "@/api/article";
 
 export default {
   name: "ArticleComments",
@@ -65,11 +68,22 @@ export default {
     return {
       comments: [], // 文章列表
       user: this.$store.state.user || {},
+      writeComment: "",
     };
   },
   async mounted() {
     const { data } = await getComments(this.article.slug);
     this.comments = data.comments;
+  },
+  methods: {
+    async postComment() {
+      const { data } = await setComments({
+        comment: {
+          body: this.writeComment,
+          slug: this.article.slug,
+        },
+      });
+    },
   },
 };
 </script>

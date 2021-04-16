@@ -75,7 +75,7 @@ export default {
   computed: {
     ...mapState(["user"]),
     modifyUser() {
-      return JSON.parse(JSON.stringify(this.user));
+      return this.user ? JSON.parse(JSON.stringify(this.user)) : {};
     },
   },
   methods: {

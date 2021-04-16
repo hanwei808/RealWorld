@@ -11,7 +11,13 @@
               class="btn btn-sm btn-outline-secondary action-btn"
               @click="eiditOrFollow()"
             >
-              <i class="ion-plus-round"></i>
+              <i
+                :class="
+                  user.username == profile.username
+                    ? 'ion-gear-a'
+                    : 'ion-plus-round'
+                "
+              ></i>
               <span v-if="user.username == profile.username"
                 >&nbsp; Edit Profile Settings</span
               >
@@ -71,9 +77,35 @@
             :key="index"
           >
             <div class="article-meta">
-              <a href=""><img :src="article.author.image" /></a>
+              <nuxt-link
+                class=""
+                :to="{
+                  name: 'profile',
+                  params: {
+                    username: article.author.username,
+                  },
+                  query: {
+                    page: 1,
+                    tab: 'my_articles',
+                  },
+                }"
+                ><img :src="article.author.image"
+              /></nuxt-link>
               <div class="info">
-                <a href="" class="author">{{ article.author.username }}</a>
+                <nuxt-link
+                  class="author"
+                  :to="{
+                    name: 'profile',
+                    params: {
+                      username: article.author.username,
+                    },
+                    query: {
+                      page: 1,
+                      tab: 'my_articles',
+                    },
+                  }"
+                  >{{ article.author.username }}</nuxt-link
+                >
                 <span class="date">{{
                   article.createdAt | date("MMM DD, YYYY")
                 }}</span>

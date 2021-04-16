@@ -4,6 +4,7 @@
       <div class="container">
         <h1 class="logo-font">拉勾教育</h1>
         <p>A place to share your knowledge.</p>
+        <h6>学员：韩伟</h6>
       </div>
     </div>
 
@@ -214,7 +215,7 @@ export default {
       getTags(),
     ]);
 
-    let { articles, articlesCount } = articleRes.data;
+    const { articles, articlesCount } = articleRes.data;
     const { tags } = tagRes.data;
 
     articles.forEach((article) => (article.favoriteDisabled = false));

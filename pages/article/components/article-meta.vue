@@ -31,7 +31,13 @@
       }"
       @click="editOrFollow()"
     >
-      <i class="ion-plus-round"></i>
+      <i
+        :class="
+          article.author.username == user.username
+            ? 'ion-edit'
+            : 'ion-plus-round'
+        "
+      ></i>
       <span v-if="user && article.author.username == user.username"
         >&nbsp; Edit Article</span
       >
@@ -50,7 +56,11 @@
       }"
       @click="deleteOrFavorite()"
     >
-      <i class="ion-heart"></i>
+      <i
+        :class="
+          article.author.username == user.username ? 'ion-trash-a' : 'ion-heart'
+        "
+      ></i>
       <span v-if="user && article.author.username == user.username"
         >&nbsp; Delete Article</span
       >
